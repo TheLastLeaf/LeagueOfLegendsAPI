@@ -19,8 +19,16 @@ class OracleConnection:
         with open("league_of_legends_sql.json", "r") as league_of_legends_sql_json:
             self.league_of_legends_sql_json = json.load(league_of_legends_sql_json)
 
-    def insert(self, language, champion):
-        return self.__engine.connect().execute(sqlalchemy.text(self.league_of_legends_sql_json["insert"]),
+    def league_of_legends_champions_select(self, version, language, id):
+        sql = sqlalchemy.text(self.league_of_legends_sql_json["LEAGUE_OF_LEGENDS_CHAMPIONS"]["SELECT"])
+        return self.__engine.connect().execute(sql, VERSION=version, LANGUAGE=language, ID=id)
+
+    def league_of_legends_champions_insert(self, language, champion):
+        if self.league_of_legends_champions_select(champion["version"], language, champion["id"]):
+            return 0
+
+        sql = sqlalchemy.text(self.league_of_legends_sql_json["LEAGUE_OF_LEGENDS_CHAMPIONS"]["INSERT"])
+        return self.__engine.connect().execute(sql,
                                                VERSION=champion["version"],
                                                LANGUAGE=language,
                                                ID=champion["id"],
@@ -62,18 +70,32 @@ class OracleConnection:
                                                STATS_ATTACKSPEEDPERLEVEL=champion["stats"]["attackspeedperlevel"],
                                                STATS_ATTACKSPEED=champion["stats"]["attackspeed"]).rowcount
 
-    def insert_list(self, language, champions):
-        return sum(self.insert(language, champion) for champion in champions)
+    def league_of_legends_champions_insert_list(self, language, champions):
+        return sum(self.league_of_legends_champions_insert(language, champion) for champion in champions)
 
-    def delete_list(self, version, language):
-        return self.__engine.connect().execute(sqlalchemy.text(self.league_of_legends_sql_json["delete_list"]),
+    def league_of_legends_champions_delete_list(self, version, language):
+        sql = sqlalchemy.text(self.league_of_legends_sql_json["LEAGUE_OF_LEGENDS_CHAMPIONS"]["DELETE_LIST"])
+        return self.__engine.connect().execute(sql,
                                                VERSION=version,
                                                LANGUAGE=language).rowcount
 
-    def delete_all(self):
-        return self.__engine.connect().execute(self.league_of_legends_sql_json["delete_all"]).rowcount
+    def league_of_legends_champions_delete_all(self):
+        return self.__engine.connect().execute(
+            self.league_of_legends_sql_json["LEAGUE_OF_LEGENDS_CHAMPIONS"]["DELETE_ALL"]).rowcount
+
+    def league_of_legends_versions_select(self, version):
+        sql = sqlalchemy.text(self.league_of_legends_sql_json["LEAGUE_OF_LEGENDS_VERSIONS"]["SELECT"])
+        return self.__engine.connect().execute(sql, VERSION=version).fetchone()
+
+    def league_of_legends_versions_insert(self, version):
+        if self.league_of_legends_versions_select(version):
+            return 0
+        sql = sqlalchemy.text(self.league_of_legends_sql_json["LEAGUE_OF_LEGENDS_VERSIONS"]["INSERT"])
+        return self.__engine.connect().execute(sql, VERSION=version).rowcount
+
+    def league_of_legends_versions_insert_list(self, versions):
+        return sum(self.league_of_legends_versions_insert(version) for version in reversed(versions))
 
 
 if __name__ == '__main__':
     oracle_connection = OracleConnection()
-    oracle_connection.delete_all()
