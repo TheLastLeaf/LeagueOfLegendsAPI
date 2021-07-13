@@ -21,7 +21,8 @@ class OracleConnection:
 
     def league_of_legends_champions_select(self, version, language, id):
         sql = sqlalchemy.text(self.league_of_legends_sql_json["LEAGUE_OF_LEGENDS_CHAMPIONS"]["SELECT"])
-        return self.__engine.connect().execute(sql, VERSION=version, LANGUAGE=language, ID=id)
+        row = self.__engine.connect().execute(sql, VERSION=version, LANGUAGE=language, ID=id).fetchone()
+        return row
 
     def league_of_legends_champions_insert(self, language, champion):
         if self.league_of_legends_champions_select(champion["version"], language, champion["id"]):
