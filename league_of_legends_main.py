@@ -24,7 +24,7 @@ if __name__ == '__main__':
 
             champion_json = get_url_json(
                 f"https://ddragon.leagueoflegends.com/cdn/{now_version}/data/{language}/champion.json")
-            row_count = oracle_connection.league_of_legends_champions_insert_list(language,
+            row_count = oracle_connection.league_of_legends_champions_merge_list(language,
                                                                                   [champion_json["data"][champion] for
                                                                                    champion in champion_json["data"]])
             print(f"{row_count}개의 챔피언이 추가되었습니다.")
